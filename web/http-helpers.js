@@ -17,7 +17,6 @@ exports.serveAssets = function(res, asset, callback) {
   var contentType = getContentType(asset);
   var statusCode = (asset === 'loading.html') ? 302 : 200;
 
-  // console.log('File =', file);
   fs.readFile(file, function(err, data) {
     if (err) {
       throw err;

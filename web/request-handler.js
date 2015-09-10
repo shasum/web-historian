@@ -1,7 +1,3 @@
-// var path = require('path');
-// var fs = require('fs');
-// var url = require('url');
-// require more modules/folders here!
 var archive = require('../helpers/archive-helpers');
 var httpHelpers = require('./http-helpers');
 
@@ -41,7 +37,6 @@ var actions = {
           archive.isUrlInList(data, function(exists){
             if (!exists) {
               archive.addUrlToList(data, function() {
-                console.log('Append successful')
                 httpHelpers.serveAssets(res, 'loading.html', httpHelpers.sendResponse);
               });
             }
