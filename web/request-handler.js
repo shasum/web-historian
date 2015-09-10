@@ -19,7 +19,6 @@ var dataHandler = function(req, callback){
 var actions = {
   'GET': function(req, res){
     var asset = routes[req.url];
-    // console.log('asset:', asset);
     if (asset) {
       httpHelpers.serveAssets(res, asset, httpHelpers.sendResponse);
     }

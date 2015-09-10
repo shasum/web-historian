@@ -4,14 +4,6 @@ var _ = require('underscore');
 var httpHelpers = require('../web/http-helpers');
 var request = require('http-request');
 
-
-/*
- * You will need to reuse the same paths many times over in the course of this sprint.
- * Consider using the `paths` object below to store frequently used file paths. This way,
- * if you move any files, you'll only need to change your code in one place! Feel free to
- * customize it in any way you wish.
- */
-
 exports.paths = paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
@@ -25,11 +17,7 @@ exports.initialize = function(pathsObj){
   });
 };
 
-// The following function names are provided to you to suggest how you might
-// modularize your code. Keep it clean!
-
 exports.readListOfUrls = readListOfUrls = function(callback){
-  // read file asynchronously, then pass data to isUrlInList (callback)
   fs.readFile(paths.list, 'utf8', function(err, data) {
     if (err) {
       throw err;
@@ -37,7 +25,7 @@ exports.readListOfUrls = readListOfUrls = function(callback){
       callback(data.split('\n'));
     }
   });
-}; // read sites.txt
+};
 
 exports.isUrlInList = function(url, callback){
   readListOfUrls(function(list) {
@@ -53,14 +41,13 @@ exports.addUrlToList = function(url, callback){
       callback();
     }
   });
-}; // add url to sites.txt
+};
 
 exports.isUrlArchived = function(url, callback){
-  // console.log('Entered isUrlArchived', url);
-  fs.exists(paths.archivedSites + url, function(exists){
+  fs.exists(paths.archivedSites + '/' + url, function(exists){
     callback(exists);
   });
-}; // if url is in /sites folder
+};
 
 exports.downloadUrls = function(urlList){
   urlList.forEach(function(url){
@@ -71,20 +58,16 @@ exports.downloadUrls = function(urlList){
           if (err) {
             throw err;
           }
-          // console.log('Downloaded ' + url);
         });
       }
     });
   });
-  // wipe out sites.txt
-  fs.truncate(paths.list, 0, function() {
-    // console.log('Sites.txt has been wiped.');
+  fs.writeFile(paths.list, '','utf8', function() {
   });
-}; // cron job, download html for sites.txt urls that have not yet been archived
-
+};
 
 exports.serveArchives = function(url, res, callback) {
-  var file = paths.archivedSites + url;
+  var file = paths.archivedSites + '/' + url;
   var contentType = "text/html";
   fs.readFile(file, function(err, data){
     if (err) {
