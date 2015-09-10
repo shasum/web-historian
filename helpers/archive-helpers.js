@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var httpHelpers = require('../web/http-helpers');
+var request = require('http-request');
+
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -26,46 +28,70 @@ exports.initialize = function(pathsObj){
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(file, callback){
+exports.readListOfUrls = readListOfUrls = function(callback){
   // read file asynchronously, then pass data to isUrlInList (callback)
+  fs.readFile(paths.list, 'utf8', function(err, data) {
+    if (err) {
+      throw err;
+    } else {
+      callback(data.split('\n'));
+    }
+  });
 }; // read sites.txt
 
-exports.isUrlInList = function(url, list){
-  return _.contains(list, url);
-}; // check if url is in sites.txt, return true or false
+exports.isUrlInList = function(url, callback){
+  readListOfUrls(function(list) {
+    callback(_.contains(list, url));
+  });
+};
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url, callback){
+  fs.appendFile(paths.list, url+'\n', 'utf8', function(err) {
+    if (err) {
+      throw err;
+    } else {
+      callback();
+    }
+  });
 }; // add url to sites.txt
 
-exports.isUrlArchived = isUrlArchived = function(url){
+exports.isUrlArchived = function(url, callback){
   // console.log('Entered isUrlArchived', url);
-  return fs.existsSync(paths.archivedSites + url);
+  fs.exists(paths.archivedSites + url, function(exists){
+    callback(exists);
+  });
 }; // if url is in /sites folder
 
-exports.downloadUrls = function(){
+exports.downloadUrls = function(urlList){
+  urlList.forEach(function(url){
+    var fullUrl = 'http://' + url;
+    request.get(fullUrl, function(err, res) {
+      if (!err && res.code === 200) {
+        fs.writeFile(paths.archivedSites + '/' + url, res.buffer.toString(), 'utf8', function(err) {
+          if (err) {
+            throw err;
+          }
+          // console.log('Downloaded ' + url);
+        });
+      }
+    });
+  });
+  // wipe out sites.txt
+  fs.truncate(paths.list, 0, function() {
+    // console.log('Sites.txt has been wiped.');
+  });
 }; // cron job, download html for sites.txt urls that have not yet been archived
 
 
-exports.serveArchives = function(req, res, callback) {
-  // console.log('Entered serveArchives', req.url);
-  if (isUrlArchived(req.url)) {
-    // console.log('Archive Fetch Success');
-    var file = paths.archivedSites + req.url;
-    var contentType = "text/html";
-    fs.readFile(file, function(err, data){
-      if (err) {
-        throw err;
-      }
-      else {
-        callback(res, data, 200, contentType);  // sendResponse passed in as callback
-      }
-    });
-  }
-  else {
-    // console.log("Archive Fetch Unsuccessful");
-    httpHelpers.sendResponse(res, 'File Not Found...', 404);
-    // !(isUrlInList)
-      // addUrlToList
-    // serveAssets with loading.html
-  }
+exports.serveArchives = function(url, res, callback) {
+  var file = paths.archivedSites + url;
+  var contentType = "text/html";
+  fs.readFile(file, function(err, data){
+    if (err) {
+      throw err;
+    }
+    else {
+      callback(res, data, 200, contentType);  // sendResponse passed in as callback
+    }
+  });
 };

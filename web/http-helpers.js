@@ -15,13 +15,15 @@ exports.serveAssets = function(res, asset, callback) {
   // css, or anything that doesn't change often.)
   var file = archive.paths.siteAssets + '/' + asset;
   var contentType = getContentType(asset);
+  var statusCode = (asset === 'loading.html') ? 302 : 200;
+
   // console.log('File =', file);
   fs.readFile(file, function(err, data) {
     if (err) {
       throw err;
     }
     else {
-      callback(res, data, 200, contentType);  // sendResponse passed in as callback
+      callback(res, data, statusCode, contentType);  // sendResponse passed in as callback
     }
   });
 };
